@@ -543,6 +543,41 @@ It is also possible to include entries into the matrix:
 This is useful if you want to, say, only test the latest version of a
 dependency together with the latest version of the runtime.
 
+### Environment variables
+
+Sometimes you may want to use env variables that are global to the matrix, ie. they're inserted into each matrix row. That may include keys, tokens, uris or other data that is needed for every build. In such case, instead of manually adding such keys to each env line in matrix, you can use `global` and `matrix` keys to differentiate between those two cases. For example:
+
+    env:
+      global:
+        - CAMPFIRE_TOKEN=abc123
+        - TIMEOUT=1000
+      matrix:
+        - USE_NETWORK=true
+        - USE_NETWORK=false
+
+Such configuration will generate matrix with 2 following env rows:
+
+    USE_NETWORK=true CAMPFIRE_TOKEN=abc123 TIMEOUT=1000
+    USE_NETWORK=false CAMPFIRE_TOKEN=abc123 TIMEOUT=1000
+
+### Secure environment variables
+
+In the last example I used a token as one of the environment variables. However, it's not very wise to put your private tokens in the publicly available file. Travis supports environment variables encryption to handle this case and allows you to keep configuration public, while keeping parts of it public. Example configuration with secure environment variables looks something like:
+
+    env:
+      global:
+        - secure: <encrypted string here>
+        - TIMEOUT=1000
+      matrix:
+        - USE_NETWORK=true
+        - USE_NETWORK=false
+        - secure: <you can also put encrypted vars inside matrix>
+
+You can encrypt environment variables using public key attached to your repository. The simplest way to do that is to use travis gem:
+
+    gem install travis
+    travis encrypt travis-ci/travis-core MY_SECRET_ENV=super_secret
+
 ### Rows That are Allowed To Fail
 
 You can also define rows that are allowed to fail in the build matrix. Allowed failures are items in your build matrix that are allowed to fail without causing the entire build
